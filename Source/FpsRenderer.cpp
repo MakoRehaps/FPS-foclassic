@@ -45,10 +45,28 @@ namespace
         if( hx < 0 || hy < 0 || hx >= (int)map.GetMaxHexX() || hy >= (int)map.GetMaxHexY() )
             return true;
 
-        // IsNotPassed already covers solid scenery. Do not turn every piece of
-        // decorative scenery into a full-height wall.
         Field& field = map.GetField( (ushort)hx, (ushort)hy );
-        return field.IsWall || field.IsNotPassed;
+        if( field.IsWall )
+            return true;
+        if( !field.IsNotPassed )
+            return false;
+
+        // Field::IsNotPassed also includes critter occupancy. Critters will be
+        // rendered as billboards, not as floor-to-ceiling map walls. Keep
+        // blocking map items and block-line cells solid.
+        for( auto it = field.Items.begin(), end = field.Items.end(); it != end; ++it )
+        {
+            ItemHex* item = *it;
+            if( item && !item->IsPassed() )
+                return true;
+        }
+
+        if( field.Crit || field.IsMultihex )
+            return false;
+
+        // No critter and no local blocking item means this is normally a block
+        // line projected into the cell by the map collision cache.
+        return true;
     }
 
     uint WallColor( float distance, bool side, bool scenery )
