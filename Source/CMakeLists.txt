@@ -353,7 +353,7 @@ target_compile_definitions( Server PRIVATE FOCLASSIC_SERVER SCRIPT_MULTITHREADIN
 target_include_directories( Server PRIVATE ${FOCLASSIC_INCLUDES} )
 target_link_libraries( Server ${SERVER_LIBS} )
 if( MSVC )
-	# see https://docs.microsoft.com/en-us/cpp/build/reference/largeaddressaware-handle-large-addresses
+	# see https://docs.microsoft.com/en-us/cpp/build/reference/opt-optimizations
 	set_property( TARGET Server APPEND_STRING PROPERTY LINK_FLAGS "/LARGEADDRESSAWARE " )
 endif()
 
@@ -516,7 +516,7 @@ endforeach()
 ## prettify IDE
 ##
 
-source_group( " "           REGULAR_EXPRESSION "\\.([Cc]|[Cc][Pp][Pp]|[Hh][Pp][Pp]|[Hh])$" )
+source_group( " "           REGULAR_EXPRESSION "\.([Cc]|[Cc][Pp][Pp]|[Hh][Pp][Pp]|[Hh])$" )
 source_group( "AngelScript" REGULAR_EXPRESSION "${SOURCE_DIR}/AngelScript" )
 source_group( "CMake"       REGULAR_EXPRESSION "[Cc][Mm][Aa][Kk][Ee]" )
 source_group( "Shared"      REGULAR_EXPRESSION "${SOURCE_DIR}/Shared" )
