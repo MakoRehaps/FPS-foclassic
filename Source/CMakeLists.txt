@@ -353,7 +353,7 @@ target_compile_definitions( Server PRIVATE FOCLASSIC_SERVER SCRIPT_MULTITHREADIN
 target_include_directories( Server PRIVATE ${FOCLASSIC_INCLUDES} )
 target_link_libraries( Server ${SERVER_LIBS} )
 if( MSVC )
-	# see https://docs.microsoft.com/en-us/cpp/build/reference/opt-optimizations
+	# see https://docs.microsoft.com/en-us/cpp/build/reference/largeaddressaware-handle-large-addresses
 	set_property( TARGET Server APPEND_STRING PROPERTY LINK_FLAGS "/LARGEADDRESSAWARE " )
 endif()
 
