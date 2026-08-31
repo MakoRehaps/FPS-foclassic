@@ -191,10 +191,20 @@ target_link_libraries( ScriptBindDummy angelscript-preprocessor Shared )
 ## Client
 ##
 
+# FPS-only fork: generate a copy of ClientInterface.cpp in the build tree where
+# only FOClient::GameDraw() is replaced. This preserves every legacy menu/HUD
+# function while ensuring the isometric map renderer is never used in game.
+include( "${CMAKE_CURRENT_LIST_DIR}/../CMake/FpsPatchClientInterface.cmake" )
+set( FPS_CLIENT_INTERFACE "${CMAKE_CURRENT_BINARY_DIR}/ClientInterface.Fps.cpp" )
+fps_patch_client_interface( "${CMAKE_CURRENT_LIST_DIR}/ClientInterface.cpp" "${FPS_CLIENT_INTERFACE}" )
+set_property( DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_CURRENT_LIST_DIR}/ClientInterface.cpp" )
+
 set( CLIENT_SOURCES
 	Client.cpp
 	Client.h
-	ClientInterface.cpp
+	${FPS_CLIENT_INTERFACE}
+	FpsRenderer.cpp
+	FpsRenderer.h
 	DataMask.h
 	Defence.h
 	MainClient.cpp
@@ -506,7 +516,7 @@ endforeach()
 ## prettify IDE
 ##
 
-source_group( " "           REGULAR_EXPRESSION "\.([Cc]|[Cc][Pp][Pp]|[Hh][Pp][Pp]|[Hh])$" )
+source_group( " "           REGULAR_EXPRESSION "\\.([Cc]|[Cc][Pp][Pp]|[Hh][Pp][Pp]|[Hh])$" )
 source_group( "AngelScript" REGULAR_EXPRESSION "${SOURCE_DIR}/AngelScript" )
 source_group( "CMake"       REGULAR_EXPRESSION "[Cc][Mm][Aa][Kk][Ee]" )
 source_group( "Shared"      REGULAR_EXPRESSION "${SOURCE_DIR}/Shared" )
