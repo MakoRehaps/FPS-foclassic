@@ -45,8 +45,10 @@ namespace
         if( hx < 0 || hy < 0 || hx >= (int)map.GetMaxHexX() || hy >= (int)map.GetMaxHexY() )
             return true;
 
+        // IsNotPassed already covers solid scenery. Do not turn every piece of
+        // decorative scenery into a full-height wall.
         Field& field = map.GetField( (ushort)hx, (ushort)hy );
-        return field.IsWall || field.IsScen || field.IsNotPassed;
+        return field.IsWall || field.IsNotPassed;
     }
 
     uint WallColor( float distance, bool side, bool scenery )
@@ -125,11 +127,12 @@ namespace FpsRenderer
         Camera.LastTick = now;
         dt = CLAMP( dt, 0.0f, 0.10f );
 
-        // Keyboard turning is intentionally independent from the legacy scrolling camera.
-        // Mouse-look and controller input can feed the same Yaw value next.
-        if( Keyb::KeyPressed[DIK_LEFT] || Keyb::KeyPressed[DIK_A] )
+        // Classic Doom keyboard turning for the camera pass. Keeping A/D out
+        // of this first step avoids colliding with FOClassic's existing game
+        // hotkeys until the FPS input layer replaces them wholesale.
+        if( Keyb::KeyPressed[DIK_LEFT] )
             Camera.Yaw -= FPS_TURN_SPEED * dt;
-        if( Keyb::KeyPressed[DIK_RIGHT] || Keyb::KeyPressed[DIK_D] )
+        if( Keyb::KeyPressed[DIK_RIGHT] )
             Camera.Yaw += FPS_TURN_SPEED * dt;
         Camera.Yaw = NormalizeAngle( Camera.Yaw );
 
@@ -143,15 +146,17 @@ namespace FpsRenderer
         {
             const float camera_x = ( (float)column + 0.5f ) / (float)screen_width;
             const float ray_angle = Camera.Yaw - FPS_FOV * 0.5f + camera_x * FPS_FOV;
-            const float ray_dir_x = cosf( ray_angle );
-            const float ray_dir_y = sinf( ray_angle );
+            const float ray_dir_x = (float)cos( (double)ray_angle );
+            const float ray_dir_y = (float)sin( (double)ray_angle );
 
-            int map_x = (int)floorf( pos_x );
-            int map_y = (int)floorf( pos_y );
+            int map_x = (int)floor( (double)pos_x );
+            int map_y = (int)floor( (double)pos_y );
 
             const float huge = 1.0e30f;
-            const float delta_x = fabsf( ray_dir_x ) < 0.00001f ? huge : fabsf( 1.0f / ray_dir_x );
-            const float delta_y = fabsf( ray_dir_y ) < 0.00001f ? huge : fabsf( 1.0f / ray_dir_y );
+            const float abs_ray_x = (float)fabs( (double)ray_dir_x );
+            const float abs_ray_y = (float)fabs( (double)ray_dir_y );
+            const float delta_x = abs_ray_x < 0.00001f ? huge : (float)fabs( 1.0 / (double)ray_dir_x );
+            const float delta_y = abs_ray_y < 0.00001f ? huge : (float)fabs( 1.0 / (double)ray_dir_y );
 
             const int step_x = ray_dir_x < 0.0f ? -1 : 1;
             const int step_y = ray_dir_y < 0.0f ? -1 : 1;
@@ -197,7 +202,7 @@ namespace FpsRenderer
                 continue;
 
             // Correct fish-eye distortion caused by measuring along the ray.
-            distance *= cosf( ray_angle - Camera.Yaw );
+            distance *= (float)cos( (double)(ray_angle - Camera.Yaw) );
             distance = max( distance, 0.05f );
 
             int wall_height = (int)( (float)screen_height * 0.90f / distance );
